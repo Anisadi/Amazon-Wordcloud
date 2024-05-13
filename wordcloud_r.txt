@@ -1,0 +1,97 @@
+#Amazon review dataset https://www.kaggle.com/code/krishcy25/sentiment-analysis-of-customer-reviews-wordcloud/input
+
+# Run the necessary packages
+library(dplyr)
+library(ggplot2)
+library(tidytext)
+library(tm)
+library(qdap)
+library(stopwords)
+library(wordcloud)
+
+# Install any neccessary packages
+install.packages("wordcloud")
+
+# Read the CSV file into a data frame
+amazon_review = read.csv("amazon_review_dataset.csv")
+
+#Check details, head and tail amazon_review dataset
+head(amazon_review)
+tail(amazon_review)
+str(amazon_review)
+summary(amazon_review)
+
+#get review description 
+review_description = amazon_review$reviews.text
+head(review_description)
+
+# Clean the posts and remove uninformative words
+review_description_1 = review_description |>
+                                tolower() |>
+                                removePunctuation() |>
+                                removeNumbers() |>
+                                stripWhitespace() |>
+                                removeWords(c(stopwords("id", source = "nltk"), stopwords("en", source = "nltk"), "Amazon", "AmazonBasics", "Amazon Basic","amazon"))
+
+head(review_description_1)
+
+# Make a vector source
+posts_source = VectorSource(review_description_1)
+head(posts_source)
+
+# Make a volatile corpus
+posts_corpus = VCorpus(posts_source)
+
+# First and last 6 rows of the data
+head(posts_corpus)
+tail(posts_corpus)
+
+# Generate TDM (Term-Document Matrix)
+posts_tdm = TermDocumentMatrix(posts_corpus)
+
+# First and last 6 rows of the data
+head(posts_tdm)
+tail(posts_tdm)
+str(posts_tdm)
+
+# Convert TDM to Matrix
+posts_m = as.matrix(posts_tdm)
+
+# First and last 6 rows of the data
+head(posts_m)
+tail(posts_m)
+str(posts_m)
+
+# Sum rows and sort by frequency
+term_frequency = posts_m |>
+                    rowSums() |>
+                    sort(decreasing = TRUE)
+
+# First and last 6 rows of the data
+head(term_frequency)
+tail(term_frequency)
+str(term_frequency)
+summary(term_frequency)
+
+# Find term frequencies (top 10)
+frequency = freq_terms(review_description_1, top = 10, at.least = 3)
+
+# First and last 6 rows of the data
+head(frequency)
+tail(frequency)
+str(frequency)
+
+# Plot term frequencies
+frequency_plot = plot(frequency)
+
+# Create word frequencies
+word_freqs = data.frame(term = names(term_frequency), num = term_frequency)
+
+# First and last 6 rows of the data
+head(word_freqs)
+tail(word_freqs)
+str(word_freqs)
+summary(word_freqs)
+
+# Create word cloud
+wordcloud = wordcloud(word_freqs$term, word_freqs$num, max.words = 100, colors = "red")
